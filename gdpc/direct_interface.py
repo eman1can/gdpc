@@ -5,8 +5,7 @@ This file contains various functions that map directly onto the HTTP interface.
 It is recommended to use `interface.py` instead.
 """
 import requests
-from requests.exceptions import ConnectionError
-
+from requests.exceptions import ConnectionError, ReadTimeout
 
 __all__ = []
 __version__ = "v5.1"
@@ -81,20 +80,25 @@ def runCommand(command):
 def requestBuildArea():
     """**Return the building area**."""
     area = 0, 0, 0, 128, 256, 128   # default area for beginners
-    response = requests.get('http://localhost:9000/buildarea')
-    if response.ok:
-        buildArea = response.json()
-        if buildArea != -1:
-            x1 = buildArea["xFrom"]
-            y1 = buildArea["yFrom"]
-            z1 = buildArea["zFrom"]
-            x2 = buildArea["xTo"]
-            y2 = buildArea["yTo"]
-            z2 = buildArea["zTo"]
-            area = x1, y1, z1, x2, y2, z2
-    else:
-        print(response.text)
-        print("Using default build area (0, 0, 0, 128, 256, 128).")
+    try:
+        response = requests.get('http://localhost:9000/buildarea', timeout=0.1)
+        if response.ok:
+            buildArea = response.json()
+            if buildArea != -1:
+                x1 = buildArea["xFrom"]
+                y1 = buildArea["yFrom"]
+                z1 = buildArea["zFrom"]
+                x2 = buildArea["xTo"]
+                y2 = buildArea["yTo"]
+                z2 = buildArea["zTo"]
+                area = x1, y1, z1, x2, y2, z2
+        else:
+            print(response.text)
+            print("Using default build area (0, 0, 0, 128, 256, 128).")
+    except ConnectionError:
+        print('Failed to connect to server')
+    except ReadTimeout:
+        print('Server is Busy')
     return area
 
 
@@ -105,6 +109,7 @@ def getChunks(x, z, dx, dz, rtype='text'):
     response = requests.get(url, headers={"Accept": acceptType})
     if response.status_code >= 400:
         print(f"Error: {response.text}")
+        raise Exception(f'Failed to get chunk data: {response.text}')
 
     if rtype == 'text':
         return response.text

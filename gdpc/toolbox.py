@@ -91,32 +91,32 @@ def normalizeCoordinates(x1, y1, z1, x2, y2=None, z2=None):
     return x1, y1, z1, x2, y2, z2
 
 
-def loop2d(a1, b1, a2=None, b2=None):
+def loop2d(a1, b1, a2=None, b2=None, step=1):
     """**Return all coordinates in a 2D region**.
 
     If only one pair is provided, the loop will yield a1*b1 values
-    If two pairs are provided the loop will yield all results between them
-        inclusively
+    If two pairs are provided the loop will yield all results between them inclusively
     """
+
     if a2 is None or b2 is None:
-        a1, b1, a2, b2 = 0, 0, a1 - 1, b1 - 1
+        a1, b1, a2, b2 = 0, 0, a1, b1
 
     a1, b1, _, a2, b2, _ = normalizeCoordinates(a1, b1, 0, a2, b2, 0)
 
-    return product(range(a1, a2 + 1), range(b1, b2 + 1))
+    return product(range(a1, a2, step), range(b1, b2, step))
 
 
-def loop3d(x1, y1, z1, x2=None, y2=None, z2=None):
+def loop3d(x1, y1, z1, x2=None, y2=None, z2=None, step=1):
     """**Return all coordinates in a region of size dx, dy, dz**.
 
     Behaves like loop2d
     """
     if x2 is None or y2 is None or z2 is None:
-        x1, y1, z1, x2, y2, z2 = 0, 0, 0, x1 - 1, y1 - 1, z1 - 1
+        x1, y1, z1, x2, y2, z2 = 0, 0, 0, x1, y1, z1
 
     x1, y1, z1, x2, y2, z2 = normalizeCoordinates(x1, y1, z1, x2, y2, z2)
 
-    return product(range(x1, x2 + 1), range(y1, y2 + 1), range(z1, z2 + 1))
+    return product(range(x1, x2, step), range(y1, y2, step), range(z1, z2, step))
 
 
 def index2slot(sx, sy, ox, oy):
